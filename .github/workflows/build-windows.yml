@@ -1,0 +1,46 @@
+name: build-windows
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Make placeholder icon if app-icon.png is missing
+        shell: python
+        run: |
+          import os, zlib, struct
+          if not os.path.exists('app-icon.png'):
+              n = 1024
+              row = b'\x00' + bytes((232, 163, 61, 255)) * n
+              raw = row * n
+              def ch(t, d):
+                  c = struct.pack('>I', len(d)) + t + d
+                  return c + struct.pack('>I', zlib.crc32(t + d))
+              png = b'\x89PNG\r\n\x1a\n' + ch(b'IHDR', struct.pack('>IIBBBBB', n, n, 8, 6, 0, 0, 0)) + ch(b'IDAT', zlib.compress(raw)) + ch(b'IEND', b'')
+              open('app-icon.png', 'wb').write(png)
+
+      - name: Generate icons
+        run: npx tauri icon app-icon.png
+
+      - name: Build installer
+        run: npx tauri build
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: sonylab-windows
+          path: src-tauri/target/release/bundle/nsis/*.exe
+          if-no-files-found: error
