@@ -1,0 +1,19 @@
+{
+  "name": "sonylab",
+  "private": true,
+  "version": "0.1.0",
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "scripts": {
+    "dev": "npm run dev -w @sonylab/web",
+    "build": "npm run build -w @sonylab/web",
+    "test": "npm run test -w @sonylab/engine",
+    "typecheck": "npm run typecheck -w @sonylab/engine && npm run typecheck -w @sonylab/web",
+    "tauri": "tauri"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "^2.0.0"
+  }
+}
